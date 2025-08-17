@@ -1,0 +1,8 @@
+# .gitignore
+# Ignore Terraform-related files
+.terraform/
+.terraform.lock.hcl
+*.tfplan
+*.tfstate
+*.tfstate.backup
+crash.log
