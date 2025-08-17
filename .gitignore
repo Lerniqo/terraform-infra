@@ -1,8 +1,47 @@
-# .gitignore
-# Ignore Terraform-related files
+ra/.gitignore
+
+```gitignore
+# Terraform files
 .terraform/
 .terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
+*.tfvars.local
+*.tfstate*
 *.tfplan
-*.tfstate
-*.tfstate.backup
+*.tfvars.backup
 crash.log
+override.tf
+override.tf.json
+terraform.tfvars.json
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+
+# Docker files (if any)
+docker-compose.override.yml
+
+# Backup files
+*.backup
+*.bak
