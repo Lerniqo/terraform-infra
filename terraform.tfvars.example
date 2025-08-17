@@ -1,12 +1,50 @@
-# Example Terraform variables file
-# Copy this file to terraform.tfvars and modify as needed
+# Example Terraform Variables Configuration
+# Copy this file to terraform.prod.tfvars and customize for your environment
 
-project_name = "kafka-local"
+# Environment (dev for local Docker, prod for AWS)
+environment = "prod"
 
-kafka_ports = {
-  external = 9094
-  internal = 9092
+# Project name used for resource naming and tagging
+project_name = "kafka"
+
+# AWS Configuration
+aws_region = "ap-south-1"  # Change to your preferred region
+
+# Network Configuration
+vpc_cidr = "10.10.0.0/16"
+public_subnet_cidr = "10.10.1.0/24"
+
+# EC2 Configuration
+instance_type = "t3.medium"      # Options: t3.small, t3.medium, t3.large, etc.
+root_volume_size = 50            # Root EBS volume size in GiB
+
+# Security Configuration - IMPORTANT: Replace with your actual IP addresses
+trusted_cidr_blocks = [
+  "203.0.113.0/24",              # Example: Replace with your office network CIDR
+  "198.51.100.25/32",            # Example: Replace with your VPN exit IP
+  # "192.168.1.0/24",            # Add more trusted networks as needed
+  # "10.0.0.0/8",                # Example: Internal corporate network
+]
+
+# SSH Key Configuration (optional)
+# Uncomment and set if you have an AWS key pair for SSH access
+# ssh_key_name = "my-aws-key-pair"
+
+# Kafka Configuration
+kafka_version = "3.7.0"          # Kafka version (bitnami/kafka image tag)
+
+# AWS Credentials (OPTIONAL - prefer environment variables or AWS CLI)
+# It's recommended to use environment variables or AWS CLI profiles instead
+# aws_access_key = ""            # Set via TF_VAR_aws_access_key or AWS_ACCESS_KEY_ID
+# aws_secret_key = ""            # Set via TF_VAR_aws_secret_key or AWS_SECRET_ACCESS_KEY
+
+# Common Tags - customize for your organization
+common_tags = {
+  Project     = "kafka"
+  Environment = "prod"
+  ManagedBy   = "Terraform"
+  Owner       = "DevOps"          # Change to your team name
+  CostCenter  = "Engineering"     # Change to your cost center
+  Application = "message-broker"
+  # Add more tags as needed by your organization
 }
-
-# Optional: Override Docker host if needed
-# docker_host = "unix:///var/run/docker.sock"
