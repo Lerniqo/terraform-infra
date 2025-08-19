@@ -1,25 +1,49 @@
 # Variables for the development environment
 
-variable "github_repository_url" {
-  description = "GitHub repository URL for the Node.js application"
+variable "aws_region" {
+  description = "AWS region for resources"
   type        = string
-  # Example: "https://github.com/yourusername/your-nodejs-app"
+  default     = "us-east-1"
 }
 
-variable "github_branch" {
-  description = "GitHub branch to deploy from"
+variable "project_name" {
+  description = "Name of the project"
   type        = string
-  default     = "main"
+  default     = "ecs-multi-app"
 }
 
-variable "health_check_path" {
-  description = "Health check endpoint path"
+variable "environment" {
+  description = "Environment name"
   type        = string
-  default     = "/health"
+  default     = "dev"
 }
 
-variable "auto_deployments_enabled" {
-  description = "Enable automatic deployments when code is pushed to the branch"
-  type        = bool
-  default     = true
+variable "vpc_cidr" {
+  description = "CIDR block for VPC"
+  type        = string
+  default     = "10.0.0.0/16"
+}
+
+variable "public_subnet_cidrs" {
+  description = "CIDR blocks for public subnets"
+  type        = list(string)
+  default     = ["10.0.1.0/24", "10.0.2.0/24"]
+}
+
+variable "app_names" {
+  description = "List of application names for ECR repositories"
+  type        = list(string)
+}
+
+variable "apps" {
+  description = "Map of applications with their configuration"
+  type = map(object({
+    image = string
+    port  = number
+  }))
+}
+
+variable "cluster_name" {
+  description = "Name of the ECS cluster"
+  type        = string
 }

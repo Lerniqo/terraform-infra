@@ -1,53 +1,84 @@
-# Development environment main configuration
-# This file calls the App Runner module with dev-specific settings
+# Terraform configuration for development environment
+# ECS Fargate multi-app deployment with supporting AWS infrastructure
 
-# Local variables for better organization
-locals {
-  environment = "dev"
-  project     = "my-nodejs-app"
-  
-  # Default tags for all resources in this environment
-  common_tags = {
-    Environment = local.environment
-    Project     = local.project
-    ManagedBy   = "Terraform"
+terraform {
+  required_version = ">= 1.0"
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
   }
 }
 
-# App Runner service for Node.js application
-module "nodejs_app" {
-  source = "../../modules/apprunner"
-  
-  # Service configuration
-  service_name   = "${local.project}-${local.environment}"
-  repository_url = var.github_repository_url
-  branch_name    = var.github_branch
-  
-  # Runtime configuration
-  runtime       = "NODEJS_18"
-  build_command = "npm install"
-  start_command = "npm start"
-  
-  # Environment variables
-  environment_variables = {
-    NODE_ENV = "production"
-    PORT     = "3000"
-    # Add more environment variables as needed
+# Configure the AWS Provider
+provider "aws" {
+  region = var.aws_region
+
+  default_tags {
+    tags = {
+      Project     = var.project_name
+      Environment = var.environment
+      ManagedBy   = "Terraform"
+    }
   }
-  
-  # Free tier instance configuration
-  cpu    = "0.25 vCPU"  # Free tier limit
-  memory = "0.5 GB"     # Free tier limit
-  
-  # Health check
-  health_check_path = var.health_check_path
-  
-  # Networking
-  is_publicly_accessible = true
-  
-  # Auto deployments
-  auto_deployments_enabled = var.auto_deployments_enabled
-  
-  # Tags
-  tags = local.common_tags
+}
+
+# Data source to get available AZs
+data "aws_availability_zones" "available" {
+  state = "available"
+}
+
+# Local values to merge ECR repository URLs with app configurations
+locals {
+  apps_with_ecr_images = {
+    for app_name, app_config in var.apps : app_name => {
+      image = "${module.ecr.repository_urls[app_name]}:latest"
+      port  = app_config.port
+    }
+  }
+}
+
+# Networking Module
+# Creates VPC, 2 public subnets, internet gateway, route table, and security group
+module "networking" {
+  source = "../../modules/networking"
+
+  project_name            = var.project_name
+  environment             = var.environment
+  vpc_cidr                = var.vpc_cidr
+  public_subnet_cidrs     = var.public_subnet_cidrs
+  availability_zones      = slice(data.aws_availability_zones.available.names, 0, 2)
+}
+
+# IAM Module
+# Creates ECS task execution role and task role
+module "iam" {
+  source = "../../modules/iam"
+
+  project_name = var.project_name
+  environment  = var.environment
+}
+
+# ECR Module
+# Creates ECR repositories for each application
+module "ecr" {
+  source = "../../modules/ecr"
+
+  app_names   = var.app_names
+  environment = var.environment
+}
+
+# ECS Module
+# Creates ECS cluster, task definitions, and services
+module "ecs" {
+  source = "../../modules/ecs"
+
+  cluster_name        = var.cluster_name
+  environment         = var.environment
+  apps                = local.apps_with_ecr_images
+  subnets             = module.networking.public_subnets
+  security_group_id   = module.networking.security_group_id
+  execution_role_arn  = module.iam.execution_role_arn
+  task_role_arn       = module.iam.task_role_arn
 }
