@@ -1,24 +1,32 @@
-# Provider configuration for multi-environment Kafka infrastructure
+# Configure the AWS Provider
+terraform {
+  required_version = ">= 1.0"
+  
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+  
+  # Uncomment and configure when ready to use remote state
+  # backend "s3" {
+  #   bucket = "your-terraform-state-bucket"
+  #   key    = "terraform.tfstate"
+  #   region = "us-east-1"
+  # }
+}
 
-# AWS provider for production environment
+# Configure the AWS Provider
 provider "aws" {
   region = var.aws_region
-
-  # Only use explicit credentials if provided, otherwise use default AWS credential chain
-  access_key = var.aws_access_key != "" ? var.aws_access_key : null
-  secret_key = var.aws_secret_key != "" ? var.aws_secret_key : null
-
+  
+  # Default tags applied to all resources
   default_tags {
-    tags = merge(var.common_tags, {
+    tags = {
       Project     = var.project_name
       Environment = var.environment
       ManagedBy   = "Terraform"
-    })
+    }
   }
-}
-
-# Docker provider for local development
-# Note: This is only used when environment = "dev"
-provider "docker" {
-  host = var.docker_host
 }
