@@ -71,8 +71,23 @@ resource "aws_ecs_task_definition" "app_task" {
         {
           name  = "PORT"
           value = tostring(each.value.port)
+        },
+        {
+          name  = "APP_ENV"
+          value = var.environment
         }
       ]
+
+      healthCheck = {
+        command = [
+          "CMD-SHELL",
+          "curl -f http://localhost:${each.value.port}/health || exit 1"
+        ]
+        interval    = 30
+        timeout     = 5
+        retries     = 3
+        startPeriod = 60
+      }
     }
   ])
 
@@ -80,6 +95,7 @@ resource "aws_ecs_task_definition" "app_task" {
     Name        = "${var.cluster_name}-${each.key}-task"
     Environment = var.environment
     ManagedBy   = "Terraform"
+    Application = each.key
   }
 }
 
@@ -96,7 +112,7 @@ resource "aws_ecs_service" "app_service" {
   network_configuration {
     subnets          = var.subnets
     security_groups  = [var.security_group_id]
-    assign_public_ip = true
+    assign_public_ip = each.value.public
   }
 
   depends_on = [aws_ecs_task_definition.app_task]
@@ -105,6 +121,8 @@ resource "aws_ecs_service" "app_service" {
     Name        = "${var.cluster_name}-${each.key}-service"
     Environment = var.environment
     ManagedBy   = "Terraform"
+    Application = each.key
+    Public      = tostring(each.value.public)
   }
 }
 

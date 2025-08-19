@@ -38,8 +38,9 @@ variable "app_names" {
 variable "apps" {
   description = "Map of applications with their configuration"
   type = map(object({
-    image = string
-    port  = number
+    image  = string
+    port   = number
+    public = bool
   }))
 }
 

@@ -64,14 +64,6 @@ resource "aws_security_group" "main" {
   name_prefix = "${var.project_name}-sg"
   vpc_id      = aws_vpc.main.id
 
-  # Allow all inbound traffic (to be restricted later)
-  ingress {
-    from_port   = 0
-    to_port     = 65535
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
   # Allow all outbound traffic
   egress {
     from_port   = 0
@@ -84,4 +76,20 @@ resource "aws_security_group" "main" {
     Name        = "${var.project_name}-sg"
     Environment = var.environment
   }
+}
+
+# Dynamic security group rules for public apps only
+resource "aws_security_group_rule" "public_app_ingress" {
+  for_each = {
+    for app_name, app_config in var.apps : app_name => app_config
+    if app_config.public == true
+  }
+
+  type              = "ingress"
+  from_port         = each.value.port
+  to_port           = each.value.port
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.main.id
+  description       = "Allow inbound traffic for ${each.key} on port ${each.value.port}"
 }

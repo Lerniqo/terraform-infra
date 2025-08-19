@@ -45,3 +45,29 @@ output "note_public_ips" {
   description = "Note about getting public IPs of running tasks"
   value = "To get public IPs of running ECS tasks, use: aws ecs list-tasks --cluster ${module.ecs.cluster_id} --query 'taskArns[*]' --output table && aws ecs describe-tasks --cluster ${module.ecs.cluster_id} --tasks <task-arn> --query 'tasks[*].attachments[*].details[?name==`networkInterfaceId`].value' --output table"
 }
+
+output "public_apps_info" {
+  description = "Information about publicly accessible applications"
+  value = {
+    for app_name, app_config in var.apps : app_name => {
+      port         = app_config.port
+      public       = app_config.public
+      service_arn  = module.ecs.service_arns[app_name]
+      image        = local.apps_with_ecr_images[app_name].image
+    }
+    if app_config.public == true
+  }
+}
+
+output "private_apps_info" {
+  description = "Information about private applications"
+  value = {
+    for app_name, app_config in var.apps : app_name => {
+      port         = app_config.port
+      public       = app_config.public
+      service_arn  = module.ecs.service_arns[app_name]
+      image        = local.apps_with_ecr_images[app_name].image
+    }
+    if app_config.public == false
+  }
+}

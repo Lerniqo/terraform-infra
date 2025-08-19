@@ -33,8 +33,9 @@ data "aws_availability_zones" "available" {
 locals {
   apps_with_ecr_images = {
     for app_name, app_config in var.apps : app_name => {
-      image = "${module.ecr.repository_urls[app_name]}:latest"
-      port  = app_config.port
+      image  = "${module.ecr.repository_urls[app_name]}:latest"
+      port   = app_config.port
+      public = app_config.public
     }
   }
 }
@@ -49,6 +50,7 @@ module "networking" {
   vpc_cidr                = var.vpc_cidr
   public_subnet_cidrs     = var.public_subnet_cidrs
   availability_zones      = slice(data.aws_availability_zones.available.names, 0, 2)
+  apps                    = var.apps
 }
 
 # IAM Module
@@ -65,8 +67,9 @@ module "iam" {
 module "ecr" {
   source = "../../modules/ecr"
 
-  app_names   = var.app_names
-  environment = var.environment
+  project_name = var.project_name
+  app_names    = var.app_names
+  environment  = var.environment
 }
 
 # ECS Module

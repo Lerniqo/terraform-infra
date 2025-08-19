@@ -2,7 +2,7 @@
 resource "aws_ecr_repository" "app_repos" {
   for_each = toset(var.app_names)
 
-  name                 = each.value
+  name                 = "${var.project_name}-${var.environment}-${each.value}"
   image_tag_mutability = "MUTABLE"
 
   image_scanning_configuration {
@@ -14,9 +14,10 @@ resource "aws_ecr_repository" "app_repos" {
   }
 
   tags = {
-    Name        = each.value
+    Name        = "${var.project_name}-${var.environment}-${each.value}"
     Environment = var.environment
     ManagedBy   = "Terraform"
+    Application = each.value
   }
 }
 
