@@ -41,6 +41,12 @@ variable "domain_name" {
   default     = ""
 }
 
+variable "amplify_app_url" {
+  description = "AWS Amplify application URL for frontend routing"
+  type        = string
+  default     = ""
+}
+
 variable "enable_auth" {
   description = "Enable Cognito authentication"
   type        = bool

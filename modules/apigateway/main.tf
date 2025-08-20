@@ -34,7 +34,7 @@ resource "aws_apigatewayv2_vpc_link" "main" {
   }
 }
 
-# Create integrations for each microservice - root routes
+# Create integrations for microservices via /api/{service} routes
 resource "aws_apigatewayv2_integration" "service_integration_root" {
   for_each = var.services
 
@@ -53,7 +53,7 @@ resource "aws_apigatewayv2_integration" "service_integration_root" {
   }
 }
 
-# Create integrations for each microservice - proxy routes
+# Create integrations for microservices via /api/{service} routes with paths
 resource "aws_apigatewayv2_integration" "service_integration_proxy" {
   for_each = var.services
 
@@ -72,23 +72,29 @@ resource "aws_apigatewayv2_integration" "service_integration_proxy" {
   }
 }
 
-# Create routes for each service - root level
+# Default route - return 404 for non-API routes
+# Frontend should be accessed via Amplify directly
+
+# Create routes for each service - root API level (/api/{service})
 resource "aws_apigatewayv2_route" "service_route_root" {
   for_each = var.services
 
   api_id    = aws_apigatewayv2_api.main.id
-  route_key = "ANY /${each.key}"
+  route_key = "ANY /api/${each.key}"
   target    = "integrations/${aws_apigatewayv2_integration.service_integration_root[each.key].id}"
 }
 
-# Create routes for each service - with paths
+# Create routes for each service - with paths (/api/{service}/{proxy+})
 resource "aws_apigatewayv2_route" "service_route_paths" {
   for_each = var.services
 
   api_id    = aws_apigatewayv2_api.main.id
-  route_key = "ANY /${each.key}/{proxy+}"
+  route_key = "ANY /api/${each.key}/{proxy+}"
   target    = "integrations/${aws_apigatewayv2_integration.service_integration_proxy[each.key].id}"
 }
+
+# API Gateway only handles /api/* routes
+# Frontend should be accessed via Amplify URL directly
 
 # API Gateway Stage
 resource "aws_apigatewayv2_stage" "main" {

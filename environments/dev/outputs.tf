@@ -67,13 +67,57 @@ output "api_gateway_id" {
   value       = module.apigateway.api_gateway_id
 }
 
+# Amplify Outputs
+output "amplify_app_id" {
+  description = "ID of the Amplify app"
+  value       = module.amplify.app_id
+}
+
+output "amplify_app_url" {
+  description = "URL of the deployed Amplify application"
+  value       = module.amplify.app_url
+}
+
+output "amplify_default_domain" {
+  description = "Default domain for the Amplify app"
+  value       = module.amplify.default_domain
+}
+
+output "amplify_custom_domain_url" {
+  description = "Custom domain URL (if configured)"
+  value       = module.amplify.custom_domain_url
+}
+
+output "amplify_webhook_url" {
+  description = "Amplify webhook URL for GitHub integration"
+  value       = module.amplify.webhook_url
+  sensitive   = true
+}
+
+# GitHub Repository Outputs
+# output "github_repository_url" {
+#   description = "URL of the GitHub repository"
+#   value       = module.github_frontend.repository_url
+# }
+
+# output "github_repository_clone_url" {
+#   description = "HTTPS clone URL for the GitHub repository"
+#   value       = module.github_frontend.repository_https_clone_url
+# }
+
+output "github_access_token" {
+  description = "GitHub access token (from GitHub App or personal token)"
+  value       = "Using personal access token"
+  sensitive   = true
+}
+
 output "api_endpoints" {
   description = "API endpoints for each microservice"
   value = {
-    "user-service"     = "${module.apigateway.api_gateway_url}/user-service"
-    "progress-service" = "${module.apigateway.api_gateway_url}/progress-service"
-    "content-service"  = "${module.apigateway.api_gateway_url}/content-service"
-    "ai-service"       = "${module.apigateway.api_gateway_url}/ai-service"
+    "user-service"     = "${module.apigateway.api_gateway_url}/api/user-service"
+    "progress-service" = "${module.apigateway.api_gateway_url}/api/progress-service"
+    "content-service"  = "${module.apigateway.api_gateway_url}/api/content-service"
+    "ai-service"       = "${module.apigateway.api_gateway_url}/api/ai-service"
   }
 }
 

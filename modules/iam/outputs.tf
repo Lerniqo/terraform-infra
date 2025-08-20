@@ -7,3 +7,8 @@ output "task_role_arn" {
   description = "ARN of the ECS task role"
   value       = aws_iam_role.ecs_task_role.arn
 }
+
+output "amplify_service_role_arn" {
+  description = "ARN of the Amplify service role"
+  value       = aws_iam_role.amplify_service_role.arn
+}

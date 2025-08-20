@@ -84,3 +84,79 @@ variable "api_gateway_services" {
   }))
   default = {}
 }
+
+variable "amplify_app_url" {
+  description = "AWS Amplify application URL for frontend routing"
+  type        = string
+  default     = ""
+}
+
+# Amplify Configuration Variables
+variable "frontend_repository_url" {
+  description = "GitHub repository URL for the frontend application"
+  type        = string
+  default     = ""
+}
+
+variable "github_token" {
+  description = "GitHub personal access token for repository access"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+# GitHub App Configuration
+variable "github_app_id" {
+  description = "GitHub App ID for authentication"
+  type        = string
+  default     = ""
+}
+
+variable "github_app_installation_id" {
+  description = "GitHub App Installation ID"
+  type        = string
+  default     = ""
+}
+
+variable "github_app_private_key" {
+  description = "GitHub App private key (PEM format)"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "use_github_app" {
+  description = "Whether to use GitHub App authentication instead of personal access token"
+  type        = bool
+  default     = false
+}
+
+variable "frontend_branch_name" {
+  description = "Name of the frontend main branch"
+  type        = string
+  default     = "main"
+}
+
+variable "amplify_build_spec" {
+  description = "Build specification for Amplify"
+  type        = string
+  default     = <<-EOT
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm install
+        build:
+          commands:
+            - npm run build
+      artifacts:
+        baseDirectory: .next
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
+          - .next/cache/**/*
+  EOT
+}

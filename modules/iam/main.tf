@@ -122,3 +122,33 @@ resource "aws_iam_role_policy" "ecs_task_role_policy" {
     ]
   })
 }
+
+# AWS Amplify Service Role
+resource "aws_iam_role" "amplify_service_role" {
+  name = "${var.project_name}-${var.environment}-amplify-service-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "amplify.amazonaws.com"
+        }
+      }
+    ]
+  })
+
+  tags = {
+    Name        = "${var.project_name}-${var.environment}-amplify-service-role"
+    Environment = var.environment
+    ManagedBy   = "Terraform"
+  }
+}
+
+# Attach AWS managed policy for Amplify backend deployment
+resource "aws_iam_role_policy_attachment" "amplify_backend_deployment_policy" {
+  role       = aws_iam_role.amplify_service_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess-Amplify"
+}

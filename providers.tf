@@ -7,6 +7,18 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
+    github = {
+      source  = "integrations/github"
+      version = "~> 6.0"
+    }
+    external = {
+      source  = "hashicorp/external"
+      version = "~> 2.0"
+    }
+    http = {
+      source  = "hashicorp/http"
+      version = "~> 3.0"
+    }
   }
   
   # Uncomment and configure when ready to use remote state
@@ -29,4 +41,10 @@ provider "aws" {
       ManagedBy   = "Terraform"
     }
   }
+}
+
+# Configure the GitHub Provider
+# Note: When using GitHub App, the token will be provided by the module
+provider "github" {
+  token = var.github_token
 }

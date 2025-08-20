@@ -108,6 +108,61 @@ module "ecs" {
   target_group_arns   = module.alb.target_group_arns
 }
 
+# Amplify Module
+# Creates AWS Amplify app for frontend hosting
+module "amplify" {
+  source = "../../modules/amplify"
+
+  project_name          = var.project_name
+  environment           = var.environment
+  repository_url        = var.frontend_repository_url
+  # Use direct GitHub token for repository access
+  github_token          = var.github_token
+  iam_service_role_arn  = module.iam.amplify_service_role_arn
+  main_branch_name      = var.frontend_branch_name
+  api_gateway_url       = module.apigateway.api_gateway_url
+  domain_name           = var.domain_name
+  build_spec            = var.amplify_build_spec
+
+  # Enable auto-build and auto-deployment features
+  enable_auto_build            = true
+  enable_auto_branch_deletion  = true
+  enable_auto_subdomain        = false
+
+  environment_variables = {
+    REACT_APP_API_URL = module.apigateway.api_gateway_url
+    REACT_APP_ENV     = var.environment
+  }
+
+  branch_environment_variables = {
+    REACT_APP_API_URL = module.apigateway.api_gateway_url
+    REACT_APP_ENV     = var.environment
+  }
+}
+
+# GitHub Module - Disabled as we're using direct GitHub token
+# Manages the frontend repository and generates access tokens for GitHub App
+# module "github_frontend" {
+#   source = "../../modules/github"
+
+#   repository_name        = "frontend"
+#   repository_description = "Frontend application for ${var.project_name}"
+#   repository_visibility  = "private"
+  
+#   # Enable branch protection for main branch
+#   enable_branch_protection = false
+#   protected_branch        = var.frontend_branch_name
+  
+#   # GitHub App configuration
+#   use_github_app             = var.use_github_app
+#   github_app_id              = var.github_app_id
+#   github_app_installation_id = var.github_app_installation_id
+#   github_app_private_key     = var.github_app_private_key
+  
+#   # Amplify webhook integration (will be set after Amplify is configured)
+#   amplify_webhook_url = ""
+# }
+
 # API Gateway Module
 # Creates API Gateway with VPC Link integration to private ALB
 module "apigateway" {
@@ -119,6 +174,7 @@ module "apigateway" {
   domain_name       = var.domain_name
   private_subnets   = module.networking.private_subnets
   security_group_id = module.networking.security_group_id
+  amplify_app_url   = module.amplify.default_domain
 
   services = var.api_gateway_services
 

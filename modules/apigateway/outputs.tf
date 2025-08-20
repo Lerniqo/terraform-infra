@@ -20,6 +20,11 @@ output "api_gateway_url" {
   value       = aws_apigatewayv2_stage.main.invoke_url
 }
 
+output "api_url" {
+  description = "API URL (alias for api_gateway_url)"
+  value       = aws_apigatewayv2_stage.main.invoke_url
+}
+
 output "api_gateway_stage_name" {
   description = "Stage name of the API Gateway"
   value       = aws_apigatewayv2_stage.main.name
