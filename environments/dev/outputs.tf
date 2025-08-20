@@ -10,6 +10,11 @@ output "public_subnets" {
   value       = module.networking.public_subnets
 }
 
+output "private_subnets" {
+  description = "List of private subnet IDs"
+  value       = module.networking.private_subnets
+}
+
 output "security_group_id" {
   description = "ID of the security group"
   value       = module.networking.security_group_id
@@ -49,6 +54,27 @@ output "execution_role_arn" {
 output "task_role_arn" {
   description = "ARN of the ECS task role"
   value       = module.iam.task_role_arn
+}
+
+# API Gateway Outputs
+output "api_gateway_url" {
+  description = "URL of the API Gateway"
+  value       = module.apigateway.api_gateway_url
+}
+
+output "api_gateway_id" {
+  description = "ID of the API Gateway"
+  value       = module.apigateway.api_gateway_id
+}
+
+output "api_endpoints" {
+  description = "API endpoints for each microservice"
+  value = {
+    "user-service"     = "${module.apigateway.api_gateway_url}/user-service"
+    "progress-service" = "${module.apigateway.api_gateway_url}/progress-service"
+    "content-service"  = "${module.apigateway.api_gateway_url}/content-service"
+    "ai-service"       = "${module.apigateway.api_gateway_url}/ai-service"
+  }
 }
 
 # Instructions for getting public IPs

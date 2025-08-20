@@ -43,7 +43,7 @@ locals {
 }
 
 # Networking Module
-# Creates VPC, 2 public subnets, internet gateway, route table, and security group
+# Creates VPC, 2 public subnets, 2 private subnets, internet gateway, NAT gateway, route tables, and security group
 module "networking" {
   source = "../../modules/networking"
 
@@ -51,6 +51,7 @@ module "networking" {
   environment             = var.environment
   vpc_cidr                = var.vpc_cidr
   public_subnet_cidrs     = var.public_subnet_cidrs
+  private_subnet_cidrs    = var.private_subnet_cidrs
   availability_zones      = slice(data.aws_availability_zones.available.names, 0, 2)
   apps                    = var.apps
 }
@@ -77,14 +78,14 @@ module "ecr" {
 }
 
 # ALB Module
-# Creates Application Load Balancer for routing traffic to ECS services
+# Creates internal Application Load Balancer for routing traffic to ECS services
 module "alb" {
   source = "../../modules/alb"
 
   project_name      = var.project_name
   environment       = var.environment
   vpc_id            = module.networking.vpc_id
-  subnets           = module.networking.public_subnets
+  subnets           = module.networking.private_subnets
   security_group_id = module.networking.security_group_id
   domain_name       = var.domain_name
   apps              = local.apps_with_ecr_images
@@ -98,11 +99,34 @@ module "ecs" {
   cluster_name        = var.cluster_name
   environment         = var.environment
   apps                = local.apps_with_ecr_images
-  subnets             = module.networking.public_subnets
+  subnets             = module.networking.private_subnets
   security_group_id   = module.networking.security_group_id
   execution_role_arn  = module.iam.execution_role_arn
   task_role_arn       = module.iam.task_role_arn
   secrets_arns        = module.ecr.secrets_arns
   parameter_arns      = module.ecr.parameter_arns
   target_group_arns   = module.alb.target_group_arns
+}
+
+# API Gateway Module
+# Creates API Gateway with VPC Link integration to private ALB
+module "apigateway" {
+  source = "../../modules/apigateway"
+
+  project_name      = var.project_name
+  environment       = var.environment
+  alb_listener_arn  = module.alb.listener_arn
+  domain_name       = var.domain_name
+  private_subnets   = module.networking.private_subnets
+  security_group_id = module.networking.security_group_id
+
+  services = var.api_gateway_services
+
+  # API Gateway throttling and quota settings
+  api_quota_limit = 10000
+  api_rate_limit  = 100
+  api_burst_limit = 200
+
+  # Disable Cognito auth for now (can be enabled later)
+  enable_auth = false
 }

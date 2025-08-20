@@ -30,6 +30,12 @@ variable "public_subnet_cidrs" {
   default     = ["10.0.1.0/24", "10.0.2.0/24"]
 }
 
+variable "private_subnet_cidrs" {
+  description = "CIDR blocks for private subnets"
+  type        = list(string)
+  default     = ["10.0.3.0/24", "10.0.4.0/24"]
+}
+
 variable "app_names" {
   description = "List of application names for ECR repositories"
   type        = list(string)
@@ -67,4 +73,14 @@ variable "domain_name" {
   description = "Base domain name for the applications (e.g., learniqo.linkpc.net)"
   type        = string
   default     = ""
+}
+
+variable "api_gateway_services" {
+  description = "Map of services to expose through API Gateway"
+  type = map(object({
+    auth_required = bool
+    description   = string
+    host         = string
+  }))
+  default = {}
 }

@@ -4,7 +4,7 @@
 # Application Load Balancer
 resource "aws_lb" "main" {
   name               = "${var.project_name}-${var.environment}-alb"
-  internal           = false
+  internal           = true
   load_balancer_type = "application"
   security_groups    = [var.security_group_id]
   subnets            = var.subnets
