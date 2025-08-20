@@ -30,6 +30,17 @@ output "ecs_service_arns" {
   value       = module.ecs.service_arns
 }
 
+# ALB Outputs
+output "alb_dns_name" {
+  description = "DNS name of the Application Load Balancer"
+  value       = module.alb.alb_dns_name
+}
+
+output "alb_zone_id" {
+  description = "Zone ID of the Application Load Balancer"
+  value       = module.alb.alb_zone_id
+}
+
 output "execution_role_arn" {
   description = "ARN of the ECS task execution role"
   value       = module.iam.execution_role_arn

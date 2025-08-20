@@ -33,9 +33,11 @@ data "aws_availability_zones" "available" {
 locals {
   apps_with_ecr_images = {
     for app_name, app_config in var.apps : app_name => {
-      image  = "${module.ecr.repository_urls[app_name]}:latest"
-      port   = app_config.port
-      public = app_config.public
+      image             = "${module.ecr.repository_urls[app_name]}:latest"
+      port              = app_config.port
+      public            = app_config.public
+      environment_vars  = lookup(app_config, "environment_vars", {})
+      secrets          = lookup(app_config, "secrets", {})
     }
   }
 }
@@ -67,9 +69,25 @@ module "iam" {
 module "ecr" {
   source = "../../modules/ecr"
 
-  project_name = var.project_name
-  app_names    = var.app_names
-  environment  = var.environment
+  project_name  = var.project_name
+  app_names     = var.app_names
+  environment   = var.environment
+  app_secrets   = var.app_secrets
+  app_env_vars  = var.app_env_vars
+}
+
+# ALB Module
+# Creates Application Load Balancer for routing traffic to ECS services
+module "alb" {
+  source = "../../modules/alb"
+
+  project_name      = var.project_name
+  environment       = var.environment
+  vpc_id            = module.networking.vpc_id
+  subnets           = module.networking.public_subnets
+  security_group_id = module.networking.security_group_id
+  domain_name       = var.domain_name
+  apps              = local.apps_with_ecr_images
 }
 
 # ECS Module
@@ -84,4 +102,7 @@ module "ecs" {
   security_group_id   = module.networking.security_group_id
   execution_role_arn  = module.iam.execution_role_arn
   task_role_arn       = module.iam.task_role_arn
+  secrets_arns        = module.ecr.secrets_arns
+  parameter_arns      = module.ecr.parameter_arns
+  target_group_arns   = module.alb.target_group_arns
 }

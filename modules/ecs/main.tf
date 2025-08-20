@@ -63,7 +63,7 @@ resource "aws_ecs_task_definition" "app_task" {
         }
       }
 
-      environment = [
+      environment = concat([
         {
           name  = "NODE_ENV"
           value = var.environment
@@ -76,7 +76,29 @@ resource "aws_ecs_task_definition" "app_task" {
           name  = "APP_ENV"
           value = var.environment
         }
-      ]
+      ], [
+        for key, value in each.value.environment_vars : {
+          name  = key
+          value = value
+        }
+      ])
+
+      secrets = concat(
+        # Secrets from AWS Secrets Manager
+        contains(keys(var.secrets_arns), each.key) ? [
+          for secret_key in keys(jsondecode(data.aws_secretsmanager_secret_version.app_secrets[each.key].secret_string)) : {
+            name      = secret_key
+            valueFrom = "${var.secrets_arns[each.key]}:${secret_key}::"
+          }
+        ] : [],
+        # Individual secrets defined in app configuration
+        [
+          for key, value in each.value.secrets : {
+            name      = key
+            valueFrom = value
+          }
+        ]
+      )
 
       healthCheck = {
         command = [
@@ -115,6 +137,16 @@ resource "aws_ecs_service" "app_service" {
     assign_public_ip = each.value.public
   }
 
+  # Add load balancer configuration if target group ARN is provided
+  dynamic "load_balancer" {
+    for_each = contains(keys(var.target_group_arns), each.key) ? [1] : []
+    content {
+      target_group_arn = var.target_group_arns[each.key]
+      container_name   = each.key
+      container_port   = each.value.port
+    }
+  }
+
   depends_on = [aws_ecs_task_definition.app_task]
 
   tags = {
@@ -128,3 +160,10 @@ resource "aws_ecs_service" "app_service" {
 
 # Data source for current AWS region
 data "aws_region" "current" {}
+
+# Data source for reading secrets from AWS Secrets Manager
+data "aws_secretsmanager_secret_version" "app_secrets" {
+  for_each = var.secrets_arns
+
+  secret_id = each.value
+}

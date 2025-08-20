@@ -28,6 +28,37 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
+# Additional policy for ECS task execution role to access secrets and parameters
+resource "aws_iam_role_policy" "ecs_task_execution_secrets_policy" {
+  name = "${var.project_name}-${var.environment}-ecs-task-execution-secrets-policy"
+  role = aws_iam_role.ecs_task_execution_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue"
+        ]
+        Resource = [
+          "arn:aws:secretsmanager:*:*:secret:${var.project_name}-${var.environment}-*"
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "ssm:GetParameters",
+          "ssm:GetParameter"
+        ]
+        Resource = [
+          "arn:aws:ssm:*:*:parameter/${var.project_name}/${var.environment}/*"
+        ]
+      }
+    ]
+  })
+}
+
 # ECS Task Role
 resource "aws_iam_role" "ecs_task_role" {
   name = "${var.project_name}-${var.environment}-ecs-task-role"
@@ -68,6 +99,25 @@ resource "aws_iam_role_policy" "ecs_task_role_policy" {
           "logs:PutLogEvents"
         ]
         Resource = "arn:aws:logs:*:*:*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue"
+        ]
+        Resource = [
+          "arn:aws:secretsmanager:*:*:secret:${var.project_name}-${var.environment}-*"
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "ssm:GetParameters",
+          "ssm:GetParameter"
+        ]
+        Resource = [
+          "arn:aws:ssm:*:*:parameter/${var.project_name}/${var.environment}/*"
+        ]
       }
     ]
   })

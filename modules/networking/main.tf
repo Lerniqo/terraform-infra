@@ -78,18 +78,29 @@ resource "aws_security_group" "main" {
   }
 }
 
-# Dynamic security group rules for public apps only
+# Dynamic security group rules for public apps only - grouped by unique ports
 resource "aws_security_group_rule" "public_app_ingress" {
-  for_each = {
-    for app_name, app_config in var.apps : app_name => app_config
+  for_each = toset([
+    for app_name, app_config in var.apps : tostring(app_config.port)
     if app_config.public == true
-  }
+  ])
 
   type              = "ingress"
-  from_port         = each.value.port
-  to_port           = each.value.port
+  from_port         = tonumber(each.value)
+  to_port           = tonumber(each.value)
   protocol          = "tcp"
   cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = aws_security_group.main.id
-  description       = "Allow inbound traffic for ${each.key} on port ${each.value.port}"
+  description       = "Allow inbound traffic on port ${each.value}"
+}
+
+# Security group rule for ALB HTTP traffic
+resource "aws_security_group_rule" "alb_http_ingress" {
+  type              = "ingress"
+  from_port         = 80
+  to_port           = 80
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.main.id
+  description       = "Allow HTTP traffic for ALB"
 }
