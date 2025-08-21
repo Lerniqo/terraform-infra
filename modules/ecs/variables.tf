@@ -56,3 +56,9 @@ variable "target_group_arns" {
   type        = map(string)
   default     = {}
 }
+
+variable "alb_dns_name" {
+  description = "DNS name of the Application Load Balancer for inter-service communication"
+  type        = string
+  default     = ""
+}

@@ -106,6 +106,7 @@ module "ecs" {
   secrets_arns        = module.ecr.secrets_arns
   parameter_arns      = module.ecr.parameter_arns
   target_group_arns   = module.alb.target_group_arns
+  alb_dns_name        = module.alb.alb_dns_name
 }
 
 # Amplify Module
@@ -131,13 +132,13 @@ module "amplify" {
   enable_auto_subdomain        = false
 
   environment_variables = {
-    REACT_APP_API_URL = module.apigateway.api_gateway_url
-    REACT_APP_ENV     = var.environment
+    NEXT_APP_API_URL = module.apigateway.api_gateway_url
+    NEXT_APP_ENV     = var.environment
   }
 
   branch_environment_variables = {
-    REACT_APP_API_URL = module.apigateway.api_gateway_url
-    REACT_APP_ENV     = var.environment
+    NEXT_APP_API_URL = module.apigateway.api_gateway_url
+    NEXT_APP_ENV     = var.environment
   }
 }
 

@@ -75,6 +75,14 @@ resource "aws_ecs_task_definition" "app_task" {
         {
           name  = "APP_ENV"
           value = var.environment
+        },
+        {
+          name  = "INTERNAL_ALB_DNS"
+          value = var.alb_dns_name
+        },
+        {
+          name  = "SERVICE_DISCOVERY_URL"
+          value = "http://${var.alb_dns_name}"
         }
       ], [
         for key, value in each.value.environment_vars : {
@@ -103,7 +111,7 @@ resource "aws_ecs_task_definition" "app_task" {
       healthCheck = {
         command = [
           "CMD-SHELL",
-          "curl -f http://localhost:${each.value.port}/health || exit 1"
+          "netstat -an | grep ${each.value.port} | grep LISTEN > /dev/null; if [ $? -eq 0 ]; then exit 0; else exit 1; fi"
         ]
         interval    = 30
         timeout     = 5
