@@ -70,27 +70,27 @@ output "api_gateway_id" {
 # Amplify Outputs
 output "amplify_app_id" {
   description = "ID of the Amplify app"
-  value       = module.amplify.app_id
+  value       = length(module.amplify) > 0 ? module.amplify[0].app_id : ""
 }
 
 output "amplify_app_url" {
   description = "URL of the deployed Amplify application"
-  value       = module.amplify.app_url
+  value       = length(module.amplify) > 0 ? module.amplify[0].app_url : ""
 }
 
 output "amplify_default_domain" {
   description = "Default domain for the Amplify app"
-  value       = module.amplify.default_domain
+  value       = length(module.amplify) > 0 ? module.amplify[0].default_domain : ""
 }
 
 output "amplify_custom_domain_url" {
   description = "Custom domain URL (if configured)"
-  value       = module.amplify.custom_domain_url
+  value       = length(module.amplify) > 0 ? module.amplify[0].custom_domain_url : ""
 }
 
 output "amplify_webhook_url" {
   description = "Amplify webhook URL for GitHub integration"
-  value       = module.amplify.webhook_url
+  value       = length(module.amplify) > 0 ? module.amplify[0].webhook_url : ""
   sensitive   = true
 }
 

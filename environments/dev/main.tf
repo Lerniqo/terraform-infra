@@ -111,6 +111,7 @@ module "ecs" {
 # Amplify Module
 # Creates AWS Amplify app for frontend hosting
 module "amplify" {
+  count = var.frontend_repository_url != "" ? 1 : 0
   source = "../../modules/amplify"
 
   project_name          = var.project_name
@@ -174,7 +175,7 @@ module "apigateway" {
   domain_name       = var.domain_name
   private_subnets   = module.networking.private_subnets
   security_group_id = module.networking.security_group_id
-  amplify_app_url   = module.amplify.default_domain
+  amplify_app_url   = length(module.amplify) > 0 ? module.amplify[0].default_domain : ""
 
   services = var.api_gateway_services
 
