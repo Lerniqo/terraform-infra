@@ -132,38 +132,15 @@ module "amplify" {
   enable_auto_subdomain        = false
 
   environment_variables = {
-    NEXT_APP_API_URL = module.apigateway.api_gateway_url
+    NEXT_PUBLIC_API_URL = module.apigateway.api_gateway_url
     NEXT_APP_ENV     = var.environment
   }
 
   branch_environment_variables = {
-    NEXT_APP_API_URL = module.apigateway.api_gateway_url
+    NEXT_PUBLIC_API_URL = module.apigateway.api_gateway_url
     NEXT_APP_ENV     = var.environment
   }
 }
-
-# GitHub Module - Disabled as we're using direct GitHub token
-# Manages the frontend repository and generates access tokens for GitHub App
-# module "github_frontend" {
-#   source = "../../modules/github"
-
-#   repository_name        = "frontend"
-#   repository_description = "Frontend application for ${var.project_name}"
-#   repository_visibility  = "private"
-  
-#   # Enable branch protection for main branch
-#   enable_branch_protection = false
-#   protected_branch        = var.frontend_branch_name
-  
-#   # GitHub App configuration
-#   use_github_app             = var.use_github_app
-#   github_app_id              = var.github_app_id
-#   github_app_installation_id = var.github_app_installation_id
-#   github_app_private_key     = var.github_app_private_key
-  
-#   # Amplify webhook integration (will be set after Amplify is configured)
-#   amplify_webhook_url = ""
-# }
 
 # API Gateway Module
 # Creates API Gateway with VPC Link integration to private ALB
@@ -179,6 +156,10 @@ module "apigateway" {
   amplify_app_url   = length(module.amplify) > 0 ? module.amplify[0].default_domain : ""
 
   services = var.api_gateway_services
+
+  # CORS configuration
+  allow_credentials = true
+  cors_allowed_origins = [ "http://localhost:3000", var.cors_allowed_origin ]
 
   # API Gateway throttling and quota settings
   api_quota_limit = 10000

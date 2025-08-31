@@ -96,3 +96,21 @@ variable "enable_auto_subdomain" {
   type        = bool
   default     = false
 }
+
+variable "create_s3_bucket" {
+  description = "Whether to create an S3 bucket for the Amplify app"
+  type        = bool
+  default     = false
+}
+
+variable "s3_bucket_suffix" {
+  description = "Suffix for the S3 bucket name"
+  type        = string
+  default     = "amplify-assets"
+}
+
+variable "s3_enable_versioning" {
+  description = "Enable versioning for the S3 bucket"
+  type        = bool
+  default     = true
+}

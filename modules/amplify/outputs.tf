@@ -40,3 +40,18 @@ output "webhook_arn" {
   description = "ARN of the webhook"
   value       = aws_amplify_webhook.main.arn
 }
+
+output "s3_bucket_id" {
+  description = "ID of the S3 bucket for Amplify assets"
+  value       = var.create_s3_bucket ? aws_s3_bucket.amplify_assets[0].id : null
+}
+
+output "s3_bucket_arn" {
+  description = "ARN of the S3 bucket for Amplify assets"
+  value       = var.create_s3_bucket ? aws_s3_bucket.amplify_assets[0].arn : null
+}
+
+output "s3_bucket_name" {
+  description = "Name of the S3 bucket for Amplify assets"
+  value       = var.create_s3_bucket ? aws_s3_bucket.amplify_assets[0].bucket : null
+}

@@ -82,3 +82,15 @@ variable "api_burst_limit" {
   type        = number
   default     = 200
 }
+
+variable "allow_credentials" {
+  description = "Allow credentials for CORS"
+  type        = bool
+  default     = false
+}
+
+variable "cors_allowed_origins" {
+  description = "Allowed origins for CORS"
+  type        = list(string)
+  default     = []
+}

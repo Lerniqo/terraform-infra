@@ -16,6 +16,9 @@ resource "aws_amplify_app" "main" {
   # Build settings
   build_spec = var.build_spec
 
+  # Enable SSR by setting platform to WEB_COMPUTE
+  platform = "WEB_COMPUTE"
+
   # Environment variables
   environment_variables = merge(
     var.environment_variables,
@@ -83,3 +86,39 @@ resource "aws_amplify_webhook" "main" {
 #   # Wait for certificate validation
 #   wait_for_verification = true
 # }
+
+# S3 Bucket for Amplify assets (optional)
+resource "aws_s3_bucket" "amplify_assets" {
+  count = var.create_s3_bucket ? 1 : 0
+
+  bucket = "${var.project_name}-${var.environment}-${var.s3_bucket_suffix}"
+
+  tags = {
+    Name        = "${var.project_name}-${var.environment}-${var.s3_bucket_suffix}"
+    Environment = var.environment
+    ManagedBy   = "Terraform"
+    Purpose     = "Amplify Assets"
+  }
+}
+
+# S3 Bucket Versioning for Amplify assets
+resource "aws_s3_bucket_versioning" "amplify_assets" {
+  count = var.create_s3_bucket && var.s3_enable_versioning ? 1 : 0
+
+  bucket = aws_s3_bucket.amplify_assets[0].id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+# S3 Bucket Public Access Block for Amplify assets
+resource "aws_s3_bucket_public_access_block" "amplify_assets" {
+  count = var.create_s3_bucket ? 1 : 0
+
+  bucket = aws_s3_bucket.amplify_assets[0].id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}

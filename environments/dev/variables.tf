@@ -160,3 +160,10 @@ variable "amplify_build_spec" {
           - .next/cache/**/*
   EOT
 }
+
+
+variable "cors_allowed_origin" {
+  description = "frontend allowed origin"
+  type = string
+  default = ""
+}
