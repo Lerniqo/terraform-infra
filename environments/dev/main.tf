@@ -179,4 +179,27 @@ module "s3" {
   project_name  = var.project_name
   environment   = var.environment
   bucket_names  = split(",", var.s3_bucket_names)
+  enable_versioning = true
+  enable_encryption = true
+  block_public_access = true
+
+  lifecycle_rules = [
+    {
+      id      = "versioning_cleanup"
+      enabled = true
+      prefix  = ""
+      transitions = [
+        {
+          days          = 30
+          storage_class = "STANDARD_IA"
+        }
+      ]
+      expiration = {
+        days = 365
+      }
+      noncurrent_version_expiration = {
+        days = 7
+      }
+    }
+  ]
 }

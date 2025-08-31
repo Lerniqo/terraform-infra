@@ -1,24 +1,10 @@
-# CloudWatch Log Group
-resource "aws_cloudwatch_log_group" "ecs_log_group" {
-  for_each = var.apps
-
-  name              = "/ecs/${var.cluster_name}/${each.key}"
-  retention_in_days = 7
-
-  tags = {
-    Name        = "${var.cluster_name}-${each.key}-logs"
-    Environment = var.environment
-    ManagedBy   = "Terraform"
-  }
-}
-
 # ECS Cluster
 resource "aws_ecs_cluster" "main" {
   name = var.cluster_name
 
   setting {
     name  = "containerInsights"
-    value = "enabled"
+    value = "disabled"
   }
 
   tags = {
@@ -35,8 +21,8 @@ resource "aws_ecs_task_definition" "app_task" {
   family                   = "${var.cluster_name}-${each.key}"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = "256"
-  memory                   = "512"
+  cpu                      = "128"
+  memory                   = "256"
   execution_role_arn       = var.execution_role_arn
   task_role_arn           = var.task_role_arn
 
@@ -53,15 +39,6 @@ resource "aws_ecs_task_definition" "app_task" {
           protocol      = "tcp"
         }
       ]
-
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          awslogs-group         = aws_cloudwatch_log_group.ecs_log_group[each.key].name
-          awslogs-region        = data.aws_region.current.name
-          awslogs-stream-prefix = "ecs"
-        }
-      }
 
       environment = concat([
         {
@@ -137,7 +114,11 @@ resource "aws_ecs_service" "app_service" {
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.app_task[each.key].arn
   desired_count   = 1
-  launch_type     = "FARGATE"
+
+  capacity_provider_strategy {
+    capacity_provider = "FARGATE_SPOT"
+    weight           = 100
+  }
 
   network_configuration {
     subnets          = var.subnets
@@ -163,6 +144,34 @@ resource "aws_ecs_service" "app_service" {
     ManagedBy   = "Terraform"
     Application = each.key
     Public      = tostring(each.value.public)
+  }
+}
+
+# Auto-scaling for ECS services
+resource "aws_appautoscaling_target" "ecs_target" {
+  for_each = var.apps
+
+  max_capacity       = 2
+  min_capacity       = 0
+  resource_id        = "service/${aws_ecs_cluster.main.name}/${aws_ecs_service.app_service[each.key].name}"
+  scalable_dimension = "ecs:service:DesiredCount"
+  service_namespace  = "ecs"
+}
+
+resource "aws_appautoscaling_policy" "ecs_policy" {
+  for_each = var.apps
+
+  name               = "${each.key}-scale-down"
+  policy_type        = "TargetTrackingScaling"
+  resource_id        = aws_appautoscaling_target.ecs_target[each.key].resource_id
+  scalable_dimension = aws_appautoscaling_target.ecs_target[each.key].scalable_dimension
+  service_namespace  = aws_appautoscaling_target.ecs_target[each.key].service_namespace
+
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageCPUUtilization"
+    }
+    target_value = 30.0
   }
 }
 

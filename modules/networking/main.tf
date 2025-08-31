@@ -167,3 +167,58 @@ resource "aws_security_group_rule" "internal_communication" {
   security_group_id = aws_security_group.main.id
   description       = "Allow internal communication on port ${each.value}"
 }
+
+# VPC Endpoints for cost optimization (avoid NAT Gateway for AWS services)
+resource "aws_vpc_endpoint" "s3" {
+  vpc_id       = aws_vpc.main.id
+  service_name = "com.amazonaws.${data.aws_region.current.name}.s3"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids = [aws_route_table.private.id]
+
+  tags = {
+    Name        = "${var.project_name}-s3-endpoint"
+    Environment = var.environment
+  }
+}
+
+resource "aws_vpc_endpoint" "ecr_dkr" {
+  vpc_id              = aws_vpc.main.id
+  service_name        = "com.amazonaws.${data.aws_region.current.name}.ecr.dkr"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = aws_subnet.private[*].id
+  security_group_ids  = [aws_security_group.main.id]
+
+  tags = {
+    Name        = "${var.project_name}-ecr-dkr-endpoint"
+    Environment = var.environment
+  }
+}
+
+resource "aws_vpc_endpoint" "ecr_api" {
+  vpc_id              = aws_vpc.main.id
+  service_name        = "com.amazonaws.${data.aws_region.current.name}.ecr.api"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = aws_subnet.private[*].id
+  security_group_ids  = [aws_security_group.main.id]
+
+  tags = {
+    Name        = "${var.project_name}-ecr-api-endpoint"
+    Environment = var.environment
+  }
+}
+
+resource "aws_vpc_endpoint" "logs" {
+  vpc_id              = aws_vpc.main.id
+  service_name        = "com.amazonaws.${data.aws_region.current.name}.logs"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = aws_subnet.private[*].id
+  security_group_ids  = [aws_security_group.main.id]
+
+  tags = {
+    Name        = "${var.project_name}-logs-endpoint"
+    Environment = var.environment
+  }
+}
+
+# Data source for current region
+data "aws_region" "current" {}

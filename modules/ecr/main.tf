@@ -31,12 +31,12 @@ resource "aws_ecr_lifecycle_policy" "app_repos_policy" {
     rules = [
       {
         rulePriority = 1
-        description  = "Keep last 10 images"
+        description  = "Keep last 5 images"
         selection = {
           tagStatus     = "tagged"
           tagPrefixList = ["v"]
           countType     = "imageCountMoreThan"
-          countNumber   = 10
+          countNumber   = 5
         }
         action = {
           type = "expire"
