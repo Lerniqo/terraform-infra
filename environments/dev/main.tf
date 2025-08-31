@@ -169,3 +169,14 @@ module "apigateway" {
   # Disable Cognito auth for now (can be enabled later)
   enable_auth = false
 }
+
+# S3 Module
+# Creates S3 buckets based on the provided list of bucket names
+module "s3" {
+  count = var.s3_bucket_names != "" ? 1 : 0
+  source = "../../modules/s3"
+
+  project_name  = var.project_name
+  environment   = var.environment
+  bucket_names  = split(",", var.s3_bucket_names)
+}

@@ -1,12 +1,14 @@
 # S3 Bucket Module
-# Creates S3 bucket with standard configurations
+# Creates S3 buckets with standard configurations
 
 resource "aws_s3_bucket" "main" {
-  bucket = var.bucket_name != "" ? var.bucket_name : "${var.project_name}-${var.environment}-${var.bucket_suffix}"
+  for_each = toset(var.bucket_names)
+
+  bucket = each.value != "" ? each.value : "${var.project_name}-${var.environment}-${var.bucket_suffix}"
 
   tags = merge(
     {
-      Name        = var.bucket_name != "" ? var.bucket_name : "${var.project_name}-${var.environment}-${var.bucket_suffix}"
+      Name        = each.value != "" ? each.value : "${var.project_name}-${var.environment}-${var.bucket_suffix}"
       Environment = var.environment
       ManagedBy   = "Terraform"
     },
@@ -16,9 +18,9 @@ resource "aws_s3_bucket" "main" {
 
 # S3 Bucket Versioning
 resource "aws_s3_bucket_versioning" "main" {
-  count = var.enable_versioning ? 1 : 0
+  for_each = var.enable_versioning ? aws_s3_bucket.main : {}
 
-  bucket = aws_s3_bucket.main.id
+  bucket = aws_s3_bucket.main[each.key].id
   versioning_configuration {
     status = "Enabled"
   }
@@ -26,9 +28,9 @@ resource "aws_s3_bucket_versioning" "main" {
 
 # S3 Bucket Server-Side Encryption
 resource "aws_s3_bucket_server_side_encryption_configuration" "main" {
-  count = var.enable_encryption ? 1 : 0
+  for_each = var.enable_encryption ? aws_s3_bucket.main : {}
 
-  bucket = aws_s3_bucket.main.id
+  bucket = aws_s3_bucket.main[each.key].id
 
   rule {
     apply_server_side_encryption_by_default {
@@ -40,9 +42,9 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "main" {
 
 # S3 Bucket Public Access Block
 resource "aws_s3_bucket_public_access_block" "main" {
-  count = var.block_public_access ? 1 : 0
+  for_each = var.block_public_access ? aws_s3_bucket.main : {}
 
-  bucket = aws_s3_bucket.main.id
+  bucket = aws_s3_bucket.main[each.key].id
 
   block_public_acls       = true
   block_public_policy     = true
@@ -52,17 +54,17 @@ resource "aws_s3_bucket_public_access_block" "main" {
 
 # S3 Bucket Policy (optional)
 resource "aws_s3_bucket_policy" "main" {
-  count = var.bucket_policy != "" ? 1 : 0
+  for_each = var.bucket_policy != "" ? aws_s3_bucket.main : {}
 
-  bucket = aws_s3_bucket.main.id
+  bucket = aws_s3_bucket.main[each.key].id
   policy = var.bucket_policy
 }
 
 # S3 Bucket Lifecycle Configuration (optional)
 resource "aws_s3_bucket_lifecycle_configuration" "main" {
-  count = length(var.lifecycle_rules) > 0 ? 1 : 0
+  for_each = length(var.lifecycle_rules) > 0 ? aws_s3_bucket.main : {}
 
-  bucket = aws_s3_bucket.main.id
+  bucket = aws_s3_bucket.main[each.key].id
 
   dynamic "rule" {
     for_each = var.lifecycle_rules

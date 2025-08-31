@@ -152,3 +152,44 @@ output "private_apps_info" {
     if app_config.public == false
   }
 }
+
+# S3 Bucket Outputs
+output "s3_bucket_ids" {
+  description = "Map of S3 bucket names to their IDs"
+  value       = length(module.s3) > 0 ? module.s3[0].bucket_ids : {}
+}
+
+output "s3_bucket_arns" {
+  description = "Map of S3 bucket names to their ARNs"
+  value       = length(module.s3) > 0 ? module.s3[0].bucket_arns : {}
+}
+
+output "s3_bucket_domain_names" {
+  description = "Map of S3 bucket names to their domain names"
+  value       = length(module.s3) > 0 ? module.s3[0].bucket_domain_names : {}
+}
+
+output "s3_bucket_regional_domain_names" {
+  description = "Map of S3 bucket names to their regional domain names"
+  value       = length(module.s3) > 0 ? module.s3[0].bucket_regional_domain_names : {}
+}
+
+output "s3_bucket_names" {
+  description = "Map of S3 bucket names to their actual names"
+  value       = length(module.s3) > 0 ? module.s3[0].bucket_names : {}
+}
+
+output "s3_buckets_info" {
+  description = "Comprehensive information about created S3 buckets"
+  value = length(module.s3) > 0 ? {
+    for bucket_key, bucket_name in module.s3[0].bucket_names : bucket_key => {
+      name                    = bucket_name
+      id                      = module.s3[0].bucket_ids[bucket_key]
+      arn                     = module.s3[0].bucket_arns[bucket_key]
+      domain_name             = module.s3[0].bucket_domain_names[bucket_key]
+      regional_domain_name    = module.s3[0].bucket_regional_domain_names[bucket_key]
+      region                  = var.aws_region
+      environment             = var.environment
+    }
+  } : {}
+}

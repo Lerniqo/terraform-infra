@@ -8,10 +8,10 @@ variable "environment" {
   type        = string
 }
 
-variable "bucket_name" {
-  description = "Custom bucket name. If empty, will use generated name"
-  type        = string
-  default     = ""
+variable "bucket_names" {
+  description = "List of bucket names to create. If empty, no buckets will be created"
+  type        = list(string)
+  default     = []
 }
 
 variable "bucket_suffix" {

@@ -167,3 +167,9 @@ variable "cors_allowed_origin" {
   type = string
   default = ""
 }
+
+variable "s3_bucket_names" {
+  description = "Comma-separated list of S3 bucket names to create. If empty, no buckets will be created. Can be set via TF_VAR_s3_bucket_names environment variable"
+  type        = string
+  default     = ""
+}
