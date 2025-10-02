@@ -21,8 +21,8 @@ resource "aws_ecs_task_definition" "app_task" {
   family                   = "${var.cluster_name}-${each.key}"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = "128"
-  memory                   = "256"
+  cpu                      = "256"
+  memory                   = "512"
   execution_role_arn       = var.execution_role_arn
   task_role_arn           = var.task_role_arn
 

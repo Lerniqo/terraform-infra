@@ -21,12 +21,14 @@ terraform {
     }
   }
   
-  # Uncomment and configure when ready to use remote state
-  # backend "s3" {
-  #   bucket = "your-terraform-state-bucket"
-  #   key    = "terraform.tfstate"
-  #   region = "us-east-1"
-  # }
+  # Remote state backend configuration
+  backend "s3" {
+    bucket         = "terraform-state-lerniqo-dev"
+    key            = "global/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "terraform-state-locks"
+    encrypt        = true
+  }
 }
 
 # Configure the AWS Provider

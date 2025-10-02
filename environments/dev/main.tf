@@ -9,6 +9,15 @@ terraform {
       version = "~> 5.0"
     }
   }
+  
+  # Remote state backend configuration
+  backend "s3" {
+    bucket         = "terraform-state-lerniqo-dev"
+    key            = "environments/dev/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "terraform-state-locks"
+    encrypt        = true
+  }
 }
 
 # Configure the AWS Provider
