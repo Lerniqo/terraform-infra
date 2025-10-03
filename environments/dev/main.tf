@@ -139,6 +139,7 @@ module "amplify" {
   enable_auto_build            = true
   enable_auto_branch_deletion  = true
   enable_auto_subdomain        = false
+  
 
   environment_variables = {
     NEXT_PUBLIC_API_URL = module.apigateway.api_gateway_url
