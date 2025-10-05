@@ -116,6 +116,7 @@ module "ecs" {
   parameter_arns      = module.ecr.parameter_arns
   target_group_arns   = module.alb.target_group_arns
   alb_dns_name        = module.alb.alb_dns_name
+  log_retention_days  = var.log_retention_days
 }
 
 # Amplify Module

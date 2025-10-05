@@ -173,3 +173,9 @@ variable "s3_bucket_names" {
   type        = string
   default     = ""
 }
+
+variable "log_retention_days" {
+  description = "Number of days to retain CloudWatch logs for ECS services (lower = cheaper: 1, 3, 5, 7, 14, 30, 60, 90, etc.)"
+  type        = number
+  default     = 7
+}

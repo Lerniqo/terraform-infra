@@ -54,6 +54,15 @@ resource "aws_iam_role_policy" "ecs_task_execution_secrets_policy" {
         Resource = [
           "arn:aws:ssm:*:*:parameter/${var.project_name}/${var.environment}/*"
         ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ]
+        Resource = "arn:aws:logs:*:*:log-group:/ecs/${var.project_name}-${var.environment}-*:*"
       }
     ]
   })

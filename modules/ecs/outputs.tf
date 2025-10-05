@@ -35,3 +35,17 @@ output "service_info" {
     }
   }
 }
+
+output "cloudwatch_log_groups" {
+  description = "Map of CloudWatch log group names for ECS services"
+  value = {
+    for name, log_group in aws_cloudwatch_log_group.ecs_log_group : name => log_group.name
+  }
+}
+
+output "cloudwatch_log_group_arns" {
+  description = "Map of CloudWatch log group ARNs for ECS services"
+  value = {
+    for name, log_group in aws_cloudwatch_log_group.ecs_log_group : name => log_group.arn
+  }
+}

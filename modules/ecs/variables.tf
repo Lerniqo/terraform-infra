@@ -62,3 +62,9 @@ variable "alb_dns_name" {
   type        = string
   default     = ""
 }
+
+variable "log_retention_days" {
+  description = "Number of days to retain CloudWatch logs (lower = cheaper)"
+  type        = number
+  default     = 7
+}

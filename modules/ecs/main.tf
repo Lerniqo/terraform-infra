@@ -40,6 +40,15 @@ resource "aws_ecs_task_definition" "app_task" {
         }
       ]
 
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-group"         = aws_cloudwatch_log_group.ecs_log_group[each.key].name
+          "awslogs-region"        = data.aws_region.current.name
+          "awslogs-stream-prefix" = "ecs"
+        }
+      }
+
       environment = concat([
         {
           name  = "NODE_ENV"
@@ -172,6 +181,21 @@ resource "aws_appautoscaling_policy" "ecs_policy" {
       predefined_metric_type = "ECSServiceAverageCPUUtilization"
     }
     target_value = 30.0
+  }
+}
+
+# CloudWatch Log Groups for ECS tasks
+resource "aws_cloudwatch_log_group" "ecs_log_group" {
+  for_each = var.apps
+
+  name              = "/ecs/${var.cluster_name}/${each.key}"
+  retention_in_days = var.log_retention_days
+
+  tags = {
+    Name        = "${var.cluster_name}-${each.key}-logs"
+    Environment = var.environment
+    ManagedBy   = "Terraform"
+    Application = each.key
   }
 }
 
